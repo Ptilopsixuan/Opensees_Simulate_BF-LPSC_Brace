@@ -1,6 +1,7 @@
 import openseespy.opensees as ops
 from lib import brace, material, setter
 from pathlib import Path
+import numpy as np
 import os
 
 # Complete OpenSeesPy version of BraceTestStatic.tcl
@@ -9,8 +10,11 @@ if __name__ == "__main__":
     l_brace = 5060.0
     P = 30000.0
 
-    m_ed = material.StainlessSteel(es=200e3, fy=210.0, fu=570.0, epsilon_u=0.35, epsilon_platform=0.001, esh=0.02*200e3)
-    b = brace.LLPSCB(mat_ed=m_ed, angle_deg=50.0, l_brace=l_brace, design_drift=0.04)
+    m = material.StainlessSteel(es=130e3, fy=210.0, fu=570.0, epsilon_u=0.35, 
+                                epsilon_platform=0.001, esh=0.02*130e3)
+    b = brace.LLPSCB(mat_ed=m, angle_deg=45.0, l_brace=l_brace, design_drift=0.04, 
+                     reserved_length = 700, slip = 2.0, chuck_k_ratio=1.6,
+                     l_ed = 1800.0, d_ed = 44, f_pre = 15e3, f_spr = 200e3,)
 
     # initialize model
     modelSetter = setter.ModelSetter()
@@ -19,36 +23,38 @@ if __name__ == "__main__":
 
     # nodes and BCs
     ops.node(1, 0.0, 0.0)
-    ops.node(2, l_brace, 0.0)
+    ops.node(2, b.l_brace, 0.0)
     ops.fix(1, 1, 1, 1)
     ops.fix(2, 0, 1, 1)
 
-    # register materials and create element
-    brace_mat_tag = b.build_in_opensees()
-    ops.element('Truss', 1, 1, 2, b.a_ed, brace_mat_tag)
+        # Ensure output directory exists and helper for paths
+    out_dir = Path(__file__).resolve().parent / '.out'
+    out_dir.mkdir(exist_ok=True)
+    def outpath(name):
+        return str(out_dir / name)
+    
+    b.build_in_opensees(outpath)
 
     # Analysis setup (this will perform initial analyze(1) and loadConst per setter)
-    analysisSetter.setup_analysis()
+    ops.constraints('Transformation')
+    ops.numberer('RCM')
+    ops.test('EnergyIncr', 1.0e-6, 5000)
+    ops.algorithm('ModifiedNewton')
+    ops.system('BandGeneral')
+    ops.integrator('LoadControl', 1)
+    ops.analysis('Static')
+
+    # initial analyze and hold
+    ops.loadConst('-time', 0.0)
 
     # Define loads and pattern (time series linear)
     ops.timeSeries('Linear', 1)
     ops.pattern('Plain', 1, 1)
     ops.load(2, P, 0.0, 0.0)
 
-    # Ensure output directory exists and helper for paths
-    out_dir = Path(__file__).resolve().parent / '.out'
-    out_dir.mkdir(exist_ok=True)
-    def outpath(name):
-        return str(out_dir / name)
 
-    # Recorders (match tcl outputs) -> files placed into .out
-    ops.recorder('Node', '-file', outpath('BraceTest2Disp.out'), '-node', 2, '-dof', 1, 'disp')
-    ops.recorder('Node', '-file', outpath('BraceTest2Force.out'), '-node', 1, '-dof', 1, 'reaction')
-    ops.recorder('Element', '-file', outpath('BraceTest2BraceStreeStrain.out'), '-ele', 1, 'material', 'stressStrain')
-    ops.recorder('Element', '-file', outpath('BraceTest2Dissipator.out'), '-ele', 1, 'material', 'component', 2, 'component', 2, 'component', 2, 'stressStrain')
-    ops.recorder('Element', '-file', outpath('BraceTest2Ratchet.out'), '-ele', 1, 'material', 'component', 2, 'component', 2, 'component', 1, 'stressStrain')
-    ops.recorder('Element', '-file', outpath('BraceTest2RatchetSystem.out'), '-ele', 1, 'material', 'component', 2, 'stressStrain')
-    ops.recorder('Element', '-file', outpath('BraceTest2Spring.out'), '-ele', 1, 'material', 'component', 1, 'stressStrain')
+
+    
 
     # cyclic displacement control sequence (copied from tcl)
     numIter_list = [
@@ -59,11 +65,16 @@ if __name__ == "__main__":
         995,995,995,995
     ]
     dU_list = [
-        -0.1,0.1,0.1,-0.1, -0.1,0.1,0.1,-0.1, -0.1,0.1,0.1,-0.1,
-        -0.1,0.1,0.1,-0.1, -0.1,0.1,0.1,-0.1, -0.1,0.1,0.1,-0.1,
-        -0.1,0.1,0.1,-0.1, -0.1,0.1,0.1,-0.1, -0.1,0.1,0.1,-0.1,
-        -0.1,0.1,0.1,-0.1, -0.1,0.1,0.1,-0.1, -0.1,0.1,0.1,-0.1,
-        -0.1,0.1,0.1,-0.1
+        -0.05,0.05,0.05,-0.05, -0.05,0.05,0.05,-0.05, -0.05,0.05,0.05,-0.05,
+        -0.05,0.05,0.05,-0.05, -0.05,0.05,0.05,-0.05, -0.05,0.05,0.05,-0.05,
+        -0.05,0.05,0.05,-0.05, -0.05,0.05,0.05,-0.05, -0.05,0.05,0.05,-0.05,
+        -0.05,0.05,0.05,-0.05, -0.05,0.05,0.05,-0.05, -0.05,0.05,0.05,-0.05,
+        -0.05,0.05,0.05,-0.05
+        # -0.01,0.01,0.01,-0.01, -0.01,0.01,0.01,-0.01, -0.01,0.01,0.01,-0.01,
+        # -0.01,0.01,0.01,-0.01, -0.01,0.01,0.01,-0.01, -0.01,0.01,0.01,-0.01,
+        # -0.01,0.01,0.01,-0.01, -0.01,0.01,0.01,-0.01, -0.01,0.01,0.01,-0.01,
+        # -0.01,0.01,0.01,-0.01, -0.01,0.01,0.01,-0.01, -0.01,0.01,0.01,-0.01,
+        # -0.01,0.01,0.01,-0.01
     ]
 
     # run cycles
@@ -73,9 +84,13 @@ if __name__ == "__main__":
             raise RuntimeError(f'Analysis failed at step with dU={dU}, numIter={numIter}')
         factor = ops.getTime()
         disp2 = ops.nodeDisp(2, 1)
-        print(f"{factor*P} {disp2}")
+        # print(f"{factor*P} {disp2}")
 
-    print('Analysis successful')
+    # print('Analysis successful')
+
+    # Execute analyze_brace_results.py after analysis completes
+    with open('analyze_brace_results.py', 'r', encoding='utf-8') as f:
+        exec(f.read())
 
 
 
