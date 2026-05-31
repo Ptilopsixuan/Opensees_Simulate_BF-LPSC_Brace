@@ -77,13 +77,14 @@ class LLPSCB(Brace):
             'delta_l_max_ratio': self.delta_l_max_ratio,
             }
 
-    def build_in_opensees(self, outpath) -> int:
+    def build_in_opensees(self, out_dir) -> int:
         """Create the uniaxial materials in the current OpenSees model.
 
         Returns the next available material index after the created materials.
         """
         p = self.parameters()
         tag_base = lambda code: int(f"{100+self.NO}{int(code):02d}")
+        outpath = lambda filename: str(out_dir / filename)
 
         # # 1. Ratchet: 这个只有E，但是没有长度，而且这个E的定义是k_chuck * l_brace / a_ed
         # # Ratchet: OpenSees expects E, freeTravel, freeTravelInitial, RatType (no keywords)
@@ -128,7 +129,7 @@ class LLPSCB(Brace):
         ops.uniaxialMaterial('Parallel', tag_base(7), tag_base(5), tag_base(6))
         # 8. Prestressed Spring 其中0.001是一个随便给的数
         ops.uniaxialMaterial('ElasticMultiLinear', tag_base(8), 
-                             '-strain', -p["delta_l_max"]/p["l_brace"], -0.001 * p["delta_l_max"]/p["l_brace"], 0, p["delta_l_max"]/p["l_brace"], 
+                             '-strain', -p["delta_l_max"]/p["l_brace"], -0.002 * p["delta_l_max"]/p["l_brace"], 0, p["delta_l_max"]/p["l_brace"], 
                              '-stress', -p["f_spr"]/p["a_ed"], -p["f_pre"]/p["a_ed"], 0, p["f_spr"]/p["a_ed"]*(1e6))
         # 9. 并联
         ops.uniaxialMaterial('Series', tag_base(0), tag_base(7), tag_base(8))
