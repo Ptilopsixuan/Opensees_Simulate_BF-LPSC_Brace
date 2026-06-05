@@ -134,8 +134,6 @@ class LLPSCB(Brace):
         # 9. 并联
         ops.uniaxialMaterial('Series', tag_base(0), tag_base(7), tag_base(8))
 
-        ops.element('Truss', 1, 1, 2, self.a_ed, tag_base(0))
-
         ops.recorder('Node', '-file', outpath('BraceTest2Disp.out'), '-node', 2, '-dof', 1, 'disp')
         ops.recorder('Node', '-file', outpath('BraceTest2Force.out'), '-node', 1, '-dof', 1, 'reaction')
         ops.recorder('Element', '-file', outpath('BraceTest2BraceStreeStrain.out'), '-ele', 1, 'material', 'stressStrain')

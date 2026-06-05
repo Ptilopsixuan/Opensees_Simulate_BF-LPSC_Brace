@@ -5,7 +5,7 @@ from matplotlib.ticker import MultipleLocator
 import pandas as pd
 
 
-def pic_setting(width = 4.5, height = 5, font_size = 10, **kwargs):
+def pic_setting(width = 4.5, height = 4.5, font_size = 9, **kwargs):
     def _decode_kwargs(kwargs):
         right = kwargs.get("right", True)
         top = kwargs.get("top", True)
@@ -52,8 +52,14 @@ def pic_setting(width = 4.5, height = 5, font_size = 10, **kwargs):
         #spines
         ax.spines["top"].set_visible(top)
         ax.spines["right"].set_visible(right)
+        # ensure spines are rendered below plotted data so lines appear above axes
+        for sp in ax.spines.values():
+            try:
+                sp.set_zorder(0)
+            except Exception:
+                pass
 
-    fig, ax = plt.subplots(figsize=(width, height), dpi=700)
+    fig, ax = plt.subplots(figsize=(width / 2.54, height / 2.54), dpi=700)
     _set_ticks_and_spines(ax, *_decode_kwargs(kwargs))
     ax.set_axisbelow(True)
     ax.margins(x=0, y=0)

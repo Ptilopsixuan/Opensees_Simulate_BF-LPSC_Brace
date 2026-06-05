@@ -4,7 +4,15 @@ analyze_brace_results.py
 from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
-from lib import pic_setter
+from pathlib import Path
+import sys
+try:
+    # package import when used as module
+    from . import pic_setter
+except Exception:
+    # running file directly: ensure lib/ is on sys.path and import local module
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import pic_setter
 
 
 class plot_brace_results:
@@ -81,7 +89,7 @@ class plot_brace_results:
         print(f'Saved {outp}')
 
 
-    def plot_ed_stress_strain(self):
+    def plot_ed_stress_strain(self, **kwargs):
         data = self.load_out('BraceTest2Dissipator.out')
         if not self._validate_cols(data, 'BraceTest2Dissipator.out', 2):
             return
@@ -90,14 +98,14 @@ class plot_brace_results:
         strain = data[:, 1] / self.ed_ratio
         
         fig, ax = pic_setter.pic_setting(self.width, self.height, self.font_size,
-                            x_label='Strain', y_label='Stress (MPa)',)
+                            x_label='Strain', y_label='Stress (MPa)', **kwargs)
         ax.plot(strain, stress, color='#66ccff', linewidth=1)
         outp = self.OUT_DIR / 'ED_Stress_Strain.png'
         fig.savefig(outp)
         print(f'Saved {outp}')
 
 
-    def plot_ratchet(self):
+    def plot_ratchet(self, **kwargs):
         data = self.load_out('BraceTest2Ratchet.out')
         if not self._validate_cols(data, 'BraceTest2Ratchet.out', 2):
             return
@@ -107,20 +115,21 @@ class plot_brace_results:
 
         fig, ax = pic_setter.pic_setting(self.width, self.height, self.font_size,
                             x_label='Disp (mm)', y_label='Force (kN)',
-                            title='Ratchet Force - Disp')
+                            title='Ratchet Force - Disp', **kwargs)
         ax.plot(disp, force, color='#66ccff', linewidth=0.05)
         outp = self.OUT_DIR / 'Ratchet_Force_Disp.png'
+        # plt.show()
         fig.savefig(outp)
         print(f'Saved {outp}')
 
 
-    def plot_ratchet_system(self):
+    def plot_ratchet_system(self, **kwargs):
         data = self.load_out('BraceTest2RatchetSystem.out')
         if not self._validate_cols(data, 'BraceTest2RatchetSystem.out', 2):
             return
         fig, ax = pic_setter.pic_setting(self.width, self.height, self.font_size,
                             x_label='Brace Disp (mm)', y_label='Prestressing element Force (kN)',
-                            title='Ratchet System Force - Disp')
+                            title='Ratchet System Force - Disp', **kwargs)
         ax.plot(data[:, 2] if data.shape[1] > 2 else data[:, 1], data[:, 0], color='#66ccff', linewidth=0.8)
         
         outp = self.OUT_DIR / 'RatchetSystem_Force_Disp.png'
@@ -128,7 +137,7 @@ class plot_brace_results:
         print(f'Saved {outp}')
 
 
-    def plot_spring(self):
+    def plot_spring(self, **kwargs):
         data = self.load_out('BraceTest2Spring.out')
         if not self._validate_cols(data, 'BraceTest2Spring.out', 2):
             return
@@ -136,7 +145,7 @@ class plot_brace_results:
         disp = data[:, 1] * self.l_brace
         fig, ax = pic_setter.pic_setting(self.width, self.height, self.font_size,
                             x_label='Disp (mm)', y_label='Force (kN)',
-                            title='Spring Force - Disp')
+                            title='Spring Force - Disp', **kwargs)
         ax.plot(disp, force, color='#66ccff', linewidth=0.8)
         ax.relim()
         ax.autoscale_view()
@@ -162,16 +171,18 @@ class plot_brace_results:
 if __name__ == '__main__':
     
     # Default geometric/material values (match simulation defaults)
-    CURR_DIR = Path(__file__).parent
-    in_dir = CURR_DIR / 'single_brace_simu'
+    CURR_DIR = Path(__file__).parent.parent
+    in_dir = CURR_DIR / 'single_brace_simu' / 'static.out'
     out_dir = in_dir
     l_brace = 5060.0
     l_ed = 1800
     d_ed = 44.0  # mm
     a_ed = np.pi * d_ed ** 2 / 4.0
 
-    bpr = plot_brace_results(in_dir, out_dir, width=5 / 2.54, height=4.5 / 2.54, font_size=9, 
+    pbr = plot_brace_results(in_dir, out_dir, width=4.5, height=4.5, font_size=9, 
                              l_brace=l_brace, l_ed=l_ed, d_ed=d_ed)
-    bpr.plot_brace_force_disp(x_min = -120, x_max = 120, y_min = -200, y_max = 1000, 
+    pbr.plot_brace_force_disp(x_min = -120, x_max = 120, y_min = -200, y_max = 1000, 
                               x_major_locator=40, x_minor_locator=10, y_major_locator=200, y_minor_locator=50)
+    pbr.plot_ratchet(x_min = -800, x_max = 50, y_min = -200, y_max = 1000, 
+                        x_major_locator=200, x_minor_locator=50, y_major_locator=200, y_minor_locator=50)
     
