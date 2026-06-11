@@ -23,7 +23,7 @@ class LLPSCB(Brace):
     """LLPSCB brace containing parameters and OpenSeesPy registration
     routines that replace writing TCL files.
     """
-    def __init__(self, mat_ed: material.Material, angle_deg: float, l_brace: float, design_drift: float, *,
+    def __init__(self, mat_ed: material.Material, angle_deg: float, l_brace: float, design_drift: float,
                  reserved_length: float = 720.0, slip: float = 2.0, chuck_k_ratio: float = 1.6, 
                  l_ed: float = 1800.0, d_ed:float = 44, f_pre: float = 15e3, f_spr: float = 200e3, ):
         super().__init__(mat_ed, angle_deg, l_brace, design_drift)

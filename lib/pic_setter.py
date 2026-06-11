@@ -1,9 +1,7 @@
-from turtle import right
+# Function
 
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
-import pandas as pd
-
 
 def pic_setting(width = 4.5, height = 4.5, font_size = 9, **kwargs):
     def _decode_kwargs(kwargs):
