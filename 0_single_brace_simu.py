@@ -6,7 +6,7 @@ if __name__ == "__main__":
     # Set up output directory and plot parameters
     OUT_DIR = Path(__file__).resolve().parent / 'single_brace_simu'
     OUT_DIR.mkdir(exist_ok=True)
-    width, height, font_size= 4, 4.5, 9
+    width, height, font_size= 4, 4.5, 8
     # Define material, brace parameters, analysis protocols and step length
     P = 30000.0
     es,                 fy,         fu,             epsilon_u,  epsilon_platform,   esh = \
@@ -18,9 +18,9 @@ if __name__ == "__main__":
     l_ed,               d_ed,       f_pre,          f_spr       = \
     1800.0,             44,         15e3,           100e3
     protocols = {
-        'static': { 10.4: 3, 22.3: 3, 47.8: 3, 73.4: 3, 99.5: 1 },
-        'fatigue': { 47.8: 30 },
-        'dynamic': { 10.4: 3, 22.3: 3, 47.8: 3, 73.4: 3, 99.5: 3 },
+        'Static': { 10.4: 3, 22.3: 3, 47.8: 3, 73.4: 3, 99.5: 1 },
+        'Fatigue': { 47.8: 30 },
+        'Dynamic': { 10.4: 3, 22.3: 3, 47.8: 3, 73.4: 3, 99.5: 3 },
     }
     step_len = 0.005
 
@@ -29,12 +29,12 @@ if __name__ == "__main__":
         protocol_out_dir = OUT_DIR / f'{name}.out'
         protocol_out_dir.mkdir(exist_ok=True)
 
-        if name == 'static' or name == 'dynamic':
+        if name == 'Static' or name == 'Dynamic':
             m = material.StainlessSteel(es, fy, fu, epsilon_u, epsilon_platform, esh)
             b = brace.LLPSCB(m, angle_deg, l_brace, design_drift, 
                             reserved_length, slip, chuck_k_ratio,
                             l_ed, d_ed, f_pre, f_spr,)
-        elif name == 'fatigue':
+        elif name == 'Fatigue':
             m = material.StainlessSteel(es=160e3, fy=210.0, fu=570.0, epsilon_u=0.35, 
                                         epsilon_platform=0.001, esh=0.02*160e3)
             b = brace.LLPSCB(m, angle_deg, l_brace, design_drift, 
@@ -68,7 +68,7 @@ if __name__ == "__main__":
             factor = ops.getTime()
             
         # Plot results
-        ps = plot_simu.plot_simu(protocol_out_dir, OUT_DIR, width, height, font_size, 
+        ps = plot_simu.plot_simu(protocol_out_dir, protocol_out_dir, width, height, font_size, 
                                 l_brace = b.l_brace, l_ed=b.l_ed, d_ed=b.d_ed)
         ps.plot_brace_force_disp(x_min = -120, x_max = 120, y_min = -200, y_max = 1000, 
                                 x_major_locator=40, x_minor_locator=10, y_major_locator=200, y_minor_locator=50)

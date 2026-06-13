@@ -25,7 +25,7 @@ class plot_simu:
         self.ed_ratio = self.l_ed / self.l_brace
 
     # Helper to load text file safely
-    def load_out(self, name):
+    def _load_out(self, name):
         p = self.IN_DIR / name
         if not p.exists():
             print(f"Warning: {p} not found.")
@@ -54,7 +54,7 @@ class plot_simu:
         return True
 
     def brace_force_disp(self):
-        data = self.load_out('BraceTest2BraceStreeStrain.out')
+        data = self._load_out('BraceTest2BraceStreeStrain.out')
         if not self._validate_cols(data, 'BraceTest2BraceStreeStrain.out', 2):
             return
 
@@ -75,7 +75,7 @@ class plot_simu:
         print(f'Saved {outp}')
 
     def ed_stress_strain(self):
-        data = self.load_out('BraceTest2Dissipator.out')
+        data = self._load_out('BraceTest2Dissipator.out')
         if not self._validate_cols(data, 'BraceTest2Dissipator.out', 2):
             return
         
@@ -94,7 +94,7 @@ class plot_simu:
         print(f'Saved {outp}')
 
     def ratchet_force_disp(self):
-        data = self.load_out('BraceTest2Ratchet.out')
+        data = self._load_out('BraceTest2Ratchet.out')
         if not self._validate_cols(data, 'BraceTest2Ratchet.out', 2):
             return
         
@@ -114,7 +114,7 @@ class plot_simu:
         print(f'Saved {outp}')
 
     def ratchet_system(self):
-        data = self.load_out('BraceTest2RatchetSystem.out')
+        data = self._load_out('BraceTest2RatchetSystem.out')
         if not self._validate_cols(data, 'BraceTest2RatchetSystem.out', 2):
             return
         x = data[:, 2] if data.shape[1] > 2 else data[:, 1]
@@ -133,7 +133,7 @@ class plot_simu:
         print(f'Saved {outp}')
 
     def spring_force_disp(self):
-        data = self.load_out('BraceTest2Spring.out')
+        data = self._load_out('BraceTest2Spring.out')
         if not self._validate_cols(data, 'BraceTest2Spring.out', 2):
             return
         force = data[:, 0] * self.a_ed / 1000.0
@@ -156,7 +156,7 @@ class plot_simu:
 if __name__ == '__main__':
     # Default geometric/material values (match simulation defaults)
     CURR_DIR = Path(__file__).parent.parent
-    in_dir = CURR_DIR /'temp' / 'single_brace_simu' / 'dynamic.out'
+    in_dir = CURR_DIR / 'single_brace_simu' / 'Dynamic'
     out_dir = in_dir
     l_brace = 5060.0
     l_ed = 1800

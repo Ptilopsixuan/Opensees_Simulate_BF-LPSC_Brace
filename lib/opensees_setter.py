@@ -11,7 +11,7 @@ class ModelSetter:
         ops.model('basic', '-ndm', self.ndm, '-ndf', self.ndf)
 
     def set_analysis(self, test_type: str, protocol: dict, step_len: float) -> None:
-        if test_type == 'static' or test_type == 'fatigue' or test_type == 'dynamic':
+        if test_type == 'Static' or test_type == 'Fatigue' or test_type == 'Dynamic':
             # Follow user's preferred sequence
             ops.constraints('Transformation')
             ops.numberer('RCM')
