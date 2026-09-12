@@ -1,10 +1,11 @@
 /.vscode
+/__pycache__
+/lib/__pycache__
 /TO-LPSC-模拟
 /simu
 /test_code.py
-/lib/__pycache__
 /.out
 /temp
-/__pycache__
 /single*
 /~*
+/*.xlsx

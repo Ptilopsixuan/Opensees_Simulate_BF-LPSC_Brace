@@ -10,9 +10,10 @@ if __name__ == "__main__":
 	LINE_XS = {"Static": 5, "Dynamic": 2, "Fatigue": 8}
 
 	width, 	height, font_size, 	label_size, linewidth = \
-	6, 		4.5, 	8,			8,			0.5
+	4.5, 		4.5, 	8,			6,			0.5
 	
-	colors = ['#66ccff', '#ff66cc', '#ccff66']  # 预定义颜色列表
+	# colors = ['#66ccff', '#ff66cc', '#ccff66']  # 预定义颜色列表
+	colors = ['#1f77b4', '#b22222', '#1a1a1a']
 
 	# Tests
 	for Test_name in Test_names:

@@ -14,12 +14,12 @@ if __name__ == "__main__":
     LINE_XS = {"Static": 5, "Dynamic": 2, "Fatigue": 8}
 
     width, 	height, font_size, 	label_size, linewidth = \
-	6, 		4.5, 	8,			8,			0.5
+	6, 		4.5, 	8,			6,			0.5
 
     l_brace, l_ed, d_ed = 5060, 1800, 44
     
     colors = ['#66ccff', '#ff66cc', '#ccff66']
-    
+    colors = ['#1f77b4', '#b22222', '#1a1a1a']
     for Test_name in Test_names: 
         simu_path = SIMU_DIR / f'{Test_name}.out'
         pc = plot_comp.plot_comp(simu_path, excel_file, OUT_DIR, 

@@ -11,14 +11,15 @@ if __name__ == '__main__':
     LINE_Y = 1
     LINE_XS = {"Static": 5, "Dynamic": 2, "Fatigue": 8}
     H_len = [-365, -500, -724] # "Static", "Dynamic", "Fatigue"
-    D_len = [-347, -469, -715] # "Static", "Dynamic", "Fatigue"
+    D_len = [-350, -469, -715] # "Static", "Dynamic", "Fatigue"
     ratchet_mark_row = {"Static": (1, 14), "Dynamic": (49, 64), "Fatigue": (16, 46)}
-    slip: float = -1.5
+    slip: float = -2
 
     width, 	height, font_size, 	label_size, linewidth = \
-    6, 		4.5, 	8,			8,			0.5
+    4.5, 		4.5, 	8,			6,			0.5
 
     colors = ['#66ccff', '#ff66cc', '#ccff66']  # 预定义颜色列表
+    colors = ['#1f77b4', '#b22222', '#1a1a1a']
 
     x_mins =            [-400,  -600,   -800    ]
     x_maxs =            [25,    50,     50      ]

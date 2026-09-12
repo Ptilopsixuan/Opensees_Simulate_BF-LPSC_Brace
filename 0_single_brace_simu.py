@@ -14,7 +14,7 @@ if __name__ == "__main__":
     angle_deg,          l_brace,    design_drift    = \
     45.0,               5060,       0.04
     reserved_length,    slip,       chuck_k_ratio   = \
-    720,                1.0,        1.6
+    720,                2,        1.6
     l_ed,               d_ed,       f_pre,          f_spr       = \
     1800.0,             44,         15e3,           100e3
     protocols = {
@@ -29,17 +29,17 @@ if __name__ == "__main__":
         protocol_out_dir = OUT_DIR / f'{name}.out'
         protocol_out_dir.mkdir(exist_ok=True)
 
-        if name == 'Static' or name == 'Dynamic':
-            m = material.StainlessSteel(es, fy, fu, epsilon_u, epsilon_platform, esh)
-            b = brace.LLPSCB(m, angle_deg, l_brace, design_drift, 
-                            reserved_length, slip, chuck_k_ratio,
-                            l_ed, d_ed, f_pre, f_spr,)
-        elif name == 'Fatigue':
-            m = material.StainlessSteel(es=160e3, fy=210.0, fu=570.0, epsilon_u=0.35, 
-                                        epsilon_platform=0.001, esh=0.02*160e3)
-            b = brace.LLPSCB(m, angle_deg, l_brace, design_drift, 
-                            reserved_length, slip, chuck_k_ratio,
-                            l_ed, d_ed, f_pre, f_spr,)
+        # if name == 'Static' or name == 'Dynamic':
+        m = material.StainlessSteel(es, fy, fu, epsilon_u, epsilon_platform, esh)
+        b = brace.LLPSCB(m, angle_deg, l_brace, design_drift, 
+                        reserved_length, slip, chuck_k_ratio,
+                        l_ed, d_ed, f_pre, f_spr,)
+        # elif name == 'Fatigue':
+        #     m = material.StainlessSteel(es=160e3, fy=210.0, fu=570.0, epsilon_u=0.35, 
+        #                                 epsilon_platform=0.001, esh=0.02*160e3)
+        #     b = brace.LLPSCB(m, angle_deg, l_brace, design_drift, 
+        #                     reserved_length, slip, chuck_k_ratio,
+        #                     l_ed, d_ed, f_pre, f_spr,)
         
         # initialize model
         modelSetter = opensees_setter.ModelSetter()
