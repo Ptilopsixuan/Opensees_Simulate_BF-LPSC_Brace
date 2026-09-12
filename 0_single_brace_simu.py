@@ -10,11 +10,11 @@ if __name__ == "__main__":
     # Define material, brace parameters, analysis protocols and step length
     P = 30000.0
     es,                 fy,         fu,             epsilon_u,  epsilon_platform,   esh = \
-    130e3,              210.0,      570.0,          0.35,       0.001,              0.02*130e3
+    200e3,              210.0,      570.0,          0.35,       0.001,              0.02*130e3
     angle_deg,          l_brace,    design_drift    = \
     45.0,               5060,       0.04
     reserved_length,    slip,       chuck_k_ratio   = \
-    720,                2,        1.6
+    720,                2,          0.6
     l_ed,               d_ed,       f_pre,          f_spr       = \
     1800.0,             44,         15e3,           100e3
     protocols = {
