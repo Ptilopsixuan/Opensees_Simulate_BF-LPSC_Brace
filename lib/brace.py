@@ -19,7 +19,7 @@ class Brace:
         self.design_drift = float(design_drift) # 设计层间位移角，单位为无量纲
 
 
-class LLPSCB(Brace):
+class BFLPSCB(Brace):
     """LLPSCB brace containing parameters and OpenSeesPy registration
     routines that replace writing TCL files.
     """
@@ -86,52 +86,26 @@ class LLPSCB(Brace):
         tag_base = lambda code: int(f"{100+self.NO}{int(code):02d}")
         outpath = lambda filename: str(out_dir / filename)
 
-        # # 1. Ratchet: 这个只有E，但是没有长度，而且这个E的定义是k_chuck * l_brace / a_ed
-        # # Ratchet: OpenSees expects E, freeTravel, freeTravelInitial, RatType (no keywords)
-        # ops.uniaxialMaterial('Ratchet', tag_base(1), p["chuck_k_ratio"] * p['es'] / p['ed_ratio'], p['slip_ratio'], 0.0, 2)
-        # # 2. 限制ratchet的累计滑移量reserved_length
-        # ops.uniaxialMaterial('ElasticMultiLinear', tag_base(2), '-strain', p['reserved_length_ratio'] - epsilon_tiny, p['reserved_length_ratio'], 0, '-stress', -sigma_giant, 0, sigma_tiny)
-        # # 3. 并联
-        # ops.uniaxialMaterial('Parallel', tag_base(3), tag_base(1), tag_base(2))
-        # # 4. 耗能钢棒，且刚度转换为基于支撑长度的等效刚度
-        # ops.uniaxialMaterial('ReinforcingSteel', tag_base(4), p['fy'], p['fu'], p['es']/p['ed_ratio'], p['esh']/p['ed_ratio'], p['epsilon_sh']*p['ed_ratio'], p['epsilon_u']*p['ed_ratio'])
-        # # 5. 串联
-        # ops.uniaxialMaterial('Series', tag_base(5), tag_base(3), tag_base(4))
-        # # 6. 限制ratchet单次滑移量，保障支撑整体不会缩短
-        # ops.uniaxialMaterial('ElasticMultiLinear', tag_base(6), '-strain', -epsilon_tiny, 0.0, epsilon_tiny, '-stress', -sigma_giant, 0.0, sigma_tiny)
-        # # 7. 并联
-        # ops.uniaxialMaterial('Parallel', tag_base(7), tag_base(6), tag_base(5))
-        # # 8. Prestressed Spring 其中0.001是一个随便给的数
-        # ops.uniaxialMaterial('ElasticMultiLinear', tag_base(8), '-strain', -p["delta_l_max_ratio"], -0.001 * p["delta_l_max_ratio"], 0.0, p['delta_l_max_ratio'], '-stress', -p["f_spr"] / p["a_ed"], -p["f_pre"]/p["a_ed"], 0.0, sigma_giant)
-        # # 9. 并联
-        # ops.uniaxialMaterial('Series', tag_base(0), tag_base(7), tag_base(8))
-
-        bias = p['delta_l_max'] / p['l_brace']
-
-        # 1. Ratchet: 这个只有E，但是没有长度，而且这个E的定义是k_chuck * l_brace / a_ed
+        # 1. Ratchet
         # Ratchet: OpenSees expects E, freeTravel, freeTravelInitial, RatType (no keywords)
         ops.uniaxialMaterial('Ratchet', tag_base(1),  p["chuck_k_ratio"]*p["es"]/p["ed_ratio"], self.slip_ratio, 0.0, 2)
-        # 2. 限制ratchet的累计滑移量reserved_length
-        ops.uniaxialMaterial('ElasticMultiLinear', tag_base(2),
-                             '-strain', p["reserved_length_ratio"] - bias, p["reserved_length_ratio"], p["reserved_length_ratio"] + bias, 
-                             '-stress', -p["f_spr"]/p["a_ed"]*(1e6), 0, p["f_spr"]/p["a_ed"]/(1e6))
-        # 3. 并联
+        # 2. limit the cumulative slip of ratchet
+        ops.uniaxialMaterial('ElasticPPGap', tag_base(2), p['es']*1e3, -p['fu'], p["reserved_length_ratio"])
         ops.uniaxialMaterial('Parallel', tag_base(3), tag_base(1), tag_base(2))
-        # 4. 耗能钢棒，且刚度转换为基于支撑长度的等效刚度
+        
+        # 4. ED material
         ops.uniaxialMaterial('ReinforcingSteel', tag_base(4), p["fy"], p["fu"], p["es"]/p["ed_ratio"], p["esh"]/p["ed_ratio"], p["epsilon_sh"]*p["ed_ratio"], p["epsilon_u"]*p["ed_ratio"])
-        # 5. 串联
+
         ops.uniaxialMaterial('Series', tag_base(5), tag_base(3), tag_base(4))
-        # 6. 限制ratchet单次滑移量，保障支撑整体不会缩短
-        ops.uniaxialMaterial('ElasticMultiLinear', tag_base(6), 
-                             '-strain', -p["delta_l_max"]/p["l_brace"], 0, p["delta_l_max"]/p["l_brace"], 
-                             '-stress', -p["f_spr"]/p["a_ed"]*(1e6), 0, p["f_spr"]/p["a_ed"]/(1e6))
-        # 7. 并联
+        # 6. limit the compression of ED material
+        ops.uniaxialMaterial('ElasticPPGap', tag_base(6), p['es']*1e3, -p['fu'], -0.0)
+
         ops.uniaxialMaterial('Parallel', tag_base(7), tag_base(5), tag_base(6))
-        # 8. Prestressed Spring 其中0.001是一个随便给的数
+        # 8. Prestressed Spring: 0.002 is a small number
         ops.uniaxialMaterial('ElasticMultiLinear', tag_base(8), 
                              '-strain', -p["delta_l_max"]/p["l_brace"], -0.002 * p["delta_l_max"]/p["l_brace"], 0, p["delta_l_max"]/p["l_brace"], 
-                             '-stress', -p["f_spr"]/p["a_ed"], -p["f_pre"]/p["a_ed"], 0, p["f_spr"]/p["a_ed"]*(1e6))
-        # 9. 并联
+                             '-stress', -p["f_spr"]/p["a_ed"], -p["f_pre"]/p["a_ed"], 0, p["f_spr"]/p["a_ed"]*(1e3))
+
         ops.uniaxialMaterial('Series', tag_base(0), tag_base(7), tag_base(8))
 
         ops.recorder('Node', '-file', outpath('BraceTest2Disp.out'), '-node', 2, '-dof', 1, 'disp')
@@ -141,23 +115,5 @@ class LLPSCB(Brace):
         ops.recorder('Element', '-file', outpath('BraceTest2Ratchet.out'), '-ele', 1, 'material', 'component', 1, 'component', 1, 'component', 1, 'component', 1, 'stressStrain')
         ops.recorder('Element', '-file', outpath('BraceTest2RatchetSystem.out'), '-ele', 1, 'material', 'component', 1, 'stressStrain')
         ops.recorder('Element', '-file', outpath('BraceTest2Spring.out'), '-ele', 1, 'material', 'component', 2, 'stressStrain')
-
-    #     MATERIALS = [
-    #     ("Ratchet", tag_base(1), [p["chuck_k_ratio"] * p['es'] / p['ed_ratio'], p['slip_ratio'], 0, 2]),
-    #     ("ElasticMultiLinear", tag_base(2), ["-strain", p['reserved_length_ratio'] - epsilon_tiny, p['reserved_length_ratio'], 0.0, "-stress", -sigma_giant, 0.0, sigma_tiny]),
-    #     ("Parallel", tag_base(3), [tag_base(1), tag_base(2)]),
-    #     ("ReinforcingSteel", tag_base(4), [p['fy'], p['fu'], p['es']/p['ed_ratio'], p['esh']/p['ed_ratio'], p['epsilon_sh']*p['ed_ratio'], p['epsilon_u']*p['ed_ratio']]),
-    #     ("Series", tag_base(5), [tag_base(3), tag_base(4)]),
-    #     ("ElasticMultiLinear", tag_base(6), ["-strain", -epsilon_tiny, 0.0, epsilon_tiny, '-stress', -sigma_giant, 0.0, sigma_tiny]),
-    #     ("Parallel", tag_base(7), [tag_base(6), tag_base(5)]),
-    #     ("ElasticMultiLinear", tag_base(8), ["-strain", -p["delta_l_max_ratio"], -0.001 * p["delta_l_max_ratio"], 0.0, epsilon_tiny, "-stress", -p["f_spr"] / p["a_ed"], -p["f_pre"]/p["a_ed"], 0.0, sigma_giant]),
-    #     ("Series", tag_base(0), [tag_base(8), tag_base(7)])
-    # ]
-    #     for mtype, mtag, args in MATERIALS:
-    #         try:
-    #             ops.uniaxialMaterial(mtype, mtag, *args)
-    #             print(f"Registered material {mtype} {mtag}")
-    #         except Exception as e:
-    #             print(f"Warning: failed to register {mtype} {mtag}: {e}")
 
         return tag_base(0)

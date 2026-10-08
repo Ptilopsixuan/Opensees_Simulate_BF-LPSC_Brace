@@ -8,9 +8,9 @@ if __name__ == "__main__":
     OUT_DIR.mkdir(exist_ok=True)
     width, height, font_size= 4, 4.5, 8
     # Define material, brace parameters, analysis protocols and step length
-    P = 30000.0
+    P = 1.0 # can be any value over 0, but if this value is too huge, the analysis will include a strange initial jump.
     es,                 fy,         fu,             epsilon_u,  epsilon_platform,   esh = \
-    200e3,              210.0,      570.0,          0.35,       0.001,              0.02*130e3
+    200e3,              210.0,      570.0,          0.35,       0.001,              0.01*200e3
     angle_deg,          l_brace,    design_drift    = \
     45.0,               5060,       0.04
     reserved_length,    slip,       chuck_k_ratio   = \
@@ -31,7 +31,7 @@ if __name__ == "__main__":
 
         # if name == 'Static' or name == 'Dynamic':
         m = material.StainlessSteel(es, fy, fu, epsilon_u, epsilon_platform, esh)
-        b = brace.LLPSCB(m, angle_deg, l_brace, design_drift, 
+        b = brace.BFLPSCB(m, angle_deg, l_brace, design_drift, 
                         reserved_length, slip, chuck_k_ratio,
                         l_ed, d_ed, f_pre, f_spr,)
         # elif name == 'Fatigue':
