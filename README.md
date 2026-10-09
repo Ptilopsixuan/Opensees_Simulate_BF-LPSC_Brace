@@ -10,4 +10,4 @@
 
 - 2_.* files plot the curves of the ratchet part of the brace.
 
-revise.xlsx contains the test data of a protocol brace.
+- revise.xlsx contains the test data of a protocol brace.
